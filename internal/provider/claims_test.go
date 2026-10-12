@@ -30,10 +30,10 @@ func TestGroupMatches(t *testing.T) {
 		{"prairie", "prairie-users", false},
 		{"", "prairie-users", false},
 		// Only ASCII case folds: Unicode look-alikes do not match.
-		{"prairie-admins", "\u017filo-admins", false},             // LATIN SMALL LETTER LONG S
-		{"prairie-admins", "/\u017filo-admins", false},            // Keycloak path form
-		{"prairie-admins", "\u017filo-admins@idm.example", false}, // Kanidm SPN form
-		{"kodi", "\u212aodi", false},                              // KELVIN SIGN
+		{"prairie-admins", "prairie-admin\u017f", false},             // LATIN SMALL LETTER LONG S
+		{"prairie-admins", "/prairie-admin\u017f", false},            // Keycloak path form
+		{"prairie-admins", "prairie-admin\u017f@idm.example", false}, // Kanidm SPN form
+		{"kodi", "\u212aodi", false},                                 // KELVIN SIGN
 		{"Kodi", "\u212aodi", false},
 		{"\u212aodi", "\u212aodi", true},
 		{"KODI", "kodi", true},

@@ -149,7 +149,7 @@ func groupMatches(configured, actual string) bool {
 }
 
 // asciiEqualFold compares strings ignoring ASCII case only. strings.EqualFold
-// applies Unicode folding, which makes look-alikes such as "ſilo-admins"
+// applies Unicode folding, which makes look-alikes such as "prairie-adminſ"
 // (U+017F) or a Kelvin sign (U+212A) match "prairie-admins" and "k". Group names
 // decide AllowedGroups and AdminGroups, so only exact or ASCII-case matches
 // count. This matches prairie-plugin-auth-ldap.
