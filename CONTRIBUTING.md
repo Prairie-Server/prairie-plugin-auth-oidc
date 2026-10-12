@@ -1,23 +1,23 @@
 # Contributing to the OpenID Connect Sign-in Plugin
 
-The [Silo contribution guide](https://github.com/Silo-Server/.github/blob/main/CONTRIBUTING.md)
+The [Prairie contribution guide](https://github.com/prairie-server/prairie-server/blob/main/CONTRIBUTING.md)
 covers project-wide coordination, focused changes, evidence, AI disclosure, and
 pull request expectations. Those requirements apply here; this guide adds the
 plugin-specific workflow.
 
 ## Before you start
 
-Open an [issue](https://github.com/Silo-Server/silo-plugin-auth-oidc/issues)
+Open an [issue](https://github.com/prairie-server/prairie-plugin-auth-oidc/issues)
 before changing token validation, claim mapping, group rules, configuration
 keys, or the advertised capabilities. This repository owns the OpenID Connect
 protocol side of sign-in; the plugin contract belongs in
-[`silo-plugin-sdk`](https://github.com/Silo-Server/silo-plugin-sdk), and
+[`prairie-plugin-sdk`](https://github.com/prairie-server/prairie-plugin-sdk), and
 accounts, linking, roles, and sessions belong in
-[`silo-server`](https://github.com/Silo-Server/silo-server).
+[`prairie-server`](https://github.com/prairie-server/prairie-server).
 
 Configuration keys are stored per installation. Renaming a key or field loses
 the operator's saved value, and changing how the account key is built
-disconnects existing Silo accounts. Treat both as breaking changes.
+disconnects existing Prairie accounts. Treat both as breaking changes.
 
 ## Development setup
 
@@ -35,17 +35,25 @@ GOWORK=off go vet ./...
 GOWORK=off go build ./...
 GOWORK=off go run . manifest >/dev/null
 gofmt -l .
-golangci-lint run ./...
+GOWORK=off golangci-lint run ./...
+GOWORK=off go test ./... -count=1 -covermode=atomic -coverpkg=./... -coverprofile=coverage.raw
+grep -v '/internal/oidctest/' coverage.raw > coverage.out
+./scripts/check-coverage.sh coverage.out
 ```
 
 The manifest command must exit successfully and `gofmt -l .` should print
 nothing. Add coverage in `internal/provider` against the test provider in
 `internal/oidctest` for any change to validation, claim mapping, group rules,
 refresh, or the connection test, including the failure case.
+CI runs golangci-lint v2.14.0 (only-new-issues; a local run checks the whole
+repository) and enforces a 95% statement coverage floor
+(`scripts/check-coverage.sh`). Coverage is measured across all packages, because
+the OIDC client is tested mostly through `internal/provider`; the
+`internal/oidctest` test support package is left out of the profile.
 
 ## Open the pull request
 
 Use a Conventional Commit title, name the providers you tested against, and
 paste the actual validation results. Read the
-[AI-assisted contribution policy](https://github.com/Silo-Server/silo-server/blob/main/docs/ai-contributions.md)
+[AI-assisted contribution policy](https://github.com/prairie-server/prairie-server/blob/main/docs/ai-contributions.md)
 and include its disclosure block.

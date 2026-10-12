@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
 // Catalog installs ship only the binary, so the login-button icons are embedded
@@ -51,7 +51,7 @@ func (*assetRoutes) Handle(_ context.Context, req *pluginv1.HandleHTTPRequest) (
 	if ext == ".svg" {
 		headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 	}
-	// Silo's plugin proxy sets nosniff on every plugin response itself but
+	// Prairie's plugin proxy sets nosniff on every plugin response itself but
 	// does not forward the CSP above. It is sent for a host that passes it
 	// on; the embedded icons contain no script.
 	if req.GetMethod() == http.MethodHead {

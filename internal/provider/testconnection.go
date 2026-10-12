@@ -6,9 +6,9 @@ import (
 	"slices"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidc"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidc"
 )
 
 // Test step IDs. They are stable; the host may key UI on them.
@@ -27,7 +27,7 @@ const (
 
 // probeRedirectURI is sent with the fallback authorization-code probe. The
 // code is invalid anyway; the redirect only has to be a well-formed https URL.
-const probeRedirectURI = "https://silo.invalid/api/v2/auth/oauth/0/callback"
+const probeRedirectURI = "https://prairie.invalid/api/v2/auth/oauth/0/callback"
 
 // TestConnection checks the staged configuration in the request with a fresh
 // client, so it neither uses nor changes the running configuration's caches.
@@ -138,14 +138,14 @@ func (p *Provider) TestConnection(ctx context.Context, req *pluginv1.AuthTestCon
 			fmt.Sprintf("Could not confirm the client secret: the provider answered %s to test requests. Sign in once to confirm.", seen))
 	}
 	if cfg.ClientSecret == "" {
-		run.steps[len(run.steps)-1].Message += " No client secret is set, so the provider must treat Silo as a public client."
+		run.steps[len(run.steps)-1].Message += " No client secret is set, so the provider must treat Prairie as a public client."
 	}
 
 	switch challenge := doc.CodeChallengeMethodsSupported; {
 	case len(challenge) == 0:
-		run.pass(stepPKCE, "PKCE S256", "The provider does not advertise PKCE methods; Silo sends S256 anyway.")
+		run.pass(stepPKCE, "PKCE S256", "The provider does not advertise PKCE methods; Prairie sends S256 anyway.")
 	case !slices.Contains(challenge, "S256"):
-		run.fail(stepPKCE, "PKCE S256", "The provider lists code challenge methods "+strings.Join(challenge, ", ")+" without S256. Silo always sends S256.")
+		run.fail(stepPKCE, "PKCE S256", "The provider lists code challenge methods "+strings.Join(challenge, ", ")+" without S256. Prairie always sends S256.")
 		return run.response(), nil
 	default:
 		run.pass(stepPKCE, "PKCE S256", "The provider supports S256.")
@@ -165,30 +165,30 @@ func (p *Provider) TestConnection(ctx context.Context, req *pluginv1.AuthTestCon
 		}
 	}
 	if cfg.RequestOfflineAccess {
-		scopeMessage += " Silo re-checks accounts with the refresh token when the provider grants offline_access." +
-			" Its refresh-token lifetime must be longer than Silo's re-check interval plus about an hour." +
-			" A refused refresh token signs the person out of Silo only while the token is known to be inside its lifetime," +
+		scopeMessage += " Prairie re-checks accounts with the refresh token when the provider grants offline_access." +
+			" Its refresh-token lifetime must be longer than Prairie's re-check interval plus about an hour." +
+			" A refused refresh token signs the person out of Prairie only while the token is known to be inside its lifetime," +
 			" from the provider's refresh_expires_in, the exp of a JWT refresh token, or Refresh token lifetime;" +
 			" otherwise the sessions keep an absolute age limit."
 		if cfg.RefreshTokenLifetime > 0 {
 			scopeMessage += fmt.Sprintf(" Refresh token lifetime is %s, so a refusal within it counts as a revocation.",
 				strings.TrimSpace(cfg.lifetimeInputs[labelRefreshLifetime]))
 		} else {
-			scopeMessage += " Refresh token lifetime is blank, so Silo detects revocations only when the provider reports a lifetime." +
+			scopeMessage += " Refresh token lifetime is blank, so Prairie detects revocations only when the provider reports a lifetime." +
 				" Keycloak reports one for offline tokens only when Offline Session Max Limited is on;" +
 				" otherwise enter the realm's Offline Session Idle (30d by default)."
 		}
 	} else {
-		scopeMessage += " Without offline access Silo does not re-check accounts at the provider; their sessions get an absolute age limit."
+		scopeMessage += " Without offline access Prairie does not re-check accounts at the provider; their sessions get an absolute age limit."
 	}
 	run.pass(stepScopes, "Scopes", scopeMessage)
 
 	if cfg.ProviderLogout {
 		if doc.EndSessionEndpoint == "" {
-			run.pass(stepLogout, "Provider sign-out", "The provider has no end_session_endpoint; web sign-out ends only the Silo session.")
+			run.pass(stepLogout, "Provider sign-out", "The provider has no end_session_endpoint; web sign-out ends only the Prairie session.")
 		} else {
 			run.pass(stepLogout, "Provider sign-out", "Web sign-out also signs out at "+doc.EndSessionEndpoint+
-				". Register Silo's sign-in page as a post-logout redirect URI at the provider"+
+				". Register Prairie's sign-in page as a post-logout redirect URI at the provider"+
 				" (Keycloak: Valid post logout redirect URIs; Zitadel: Post Logout URIs), or it refuses the sign-out.")
 		}
 	}

@@ -16,3 +16,7 @@ logs/
 .cursor/
 .worktrees/
 .playwright-mcp/
+
+# Test coverage output
+/coverage.out
+/coverage.raw

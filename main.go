@@ -1,4 +1,4 @@
-// Command plugin is the Silo OpenID Connect sign-in plugin.
+// Command plugin is the Prairie OpenID Connect sign-in plugin.
 package main
 
 import (
@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/provider"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/provider"
 )
 
 // version is set at build time via -ldflags "-X main.version=...".
