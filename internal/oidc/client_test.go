@@ -11,9 +11,9 @@ import (
 
 func TestDiscoveryURLKeepsIssuerExact(t *testing.T) {
 	tests := map[string]string{
-		"https://auth.example/application/o/silo/": "https://auth.example/application/o/silo/.well-known/openid-configuration",
-		"https://kc.example/realms/silo":           "https://kc.example/realms/silo/.well-known/openid-configuration",
-		"https://idp.example":                      "https://idp.example/.well-known/openid-configuration",
+		"https://auth.example/application/o/prairie/": "https://auth.example/application/o/prairie/.well-known/openid-configuration",
+		"https://kc.example/realms/prairie":           "https://kc.example/realms/prairie/.well-known/openid-configuration",
+		"https://idp.example":                         "https://idp.example/.well-known/openid-configuration",
 	}
 	for issuer, want := range tests {
 		if got := DiscoveryURL(issuer); got != want {

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
 // protectedClaims are never taken from userinfo: they describe the signed ID
@@ -129,8 +129,8 @@ func extractGroups(claims map[string]any, path string) []string {
 
 // groupMatches compares a configured group with one the provider sent,
 // ignoring ASCII case. A Keycloak path matches with or without its leading slash
-// ("/silo-users" and "silo-users"), and a configured name without "@" matches
-// a Kanidm SPN by its name part ("silo-users" matches "silo-users@idm.example").
+// ("/prairie-users" and "prairie-users"), and a configured name without "@" matches
+// a Kanidm SPN by its name part ("prairie-users" matches "prairie-users@idm.example").
 func groupMatches(configured, actual string) bool {
 	if asciiEqualFold(configured, actual) {
 		return true
@@ -150,9 +150,9 @@ func groupMatches(configured, actual string) bool {
 
 // asciiEqualFold compares strings ignoring ASCII case only. strings.EqualFold
 // applies Unicode folding, which makes look-alikes such as "ſilo-admins"
-// (U+017F) or a Kelvin sign (U+212A) match "silo-admins" and "k". Group names
+// (U+017F) or a Kelvin sign (U+212A) match "prairie-admins" and "k". Group names
 // decide AllowedGroups and AdminGroups, so only exact or ASCII-case matches
-// count. This matches silo-plugin-auth-ldap.
+// count. This matches prairie-plugin-auth-ldap.
 func asciiEqualFold(a, b string) bool {
 	if len(a) != len(b) {
 		return false

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidctest"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidctest"
 )
 
 func runTest(t *testing.T, p *Provider, cfg settings) *pluginv1.AuthTestConnectionResponse {
@@ -177,7 +177,7 @@ func TestTestConnectionFailures(t *testing.T) {
 }
 
 func TestTestConnectionIssuerMismatchHint(t *testing.T) {
-	idp := newIdP(t, oidctest.WithIssuerSuffix("/application/o/silo/"))
+	idp := newIdP(t, oidctest.WithIssuerSuffix("/application/o/prairie/"))
 	cfg := baseSettings(idp)
 	// Both forms reach the same discovery URL, but the reported issuer keeps
 	// its slash, so the slash-less setting must fail.
@@ -201,7 +201,7 @@ func TestTestConnectionRefreshLifetimeNote(t *testing.T) {
 		}
 		return stepsByID(resp)[stepScopes].GetMessage()
 	}
-	common := "signs the person out of Silo only while the token is known to be inside its lifetime"
+	common := "signs the person out of Prairie only while the token is known to be inside its lifetime"
 
 	blank := scopes(baseSettings(idp))
 	for _, want := range []string{common, "Refresh token lifetime is blank", "Offline Session Max Limited", "Offline Session Idle"} {
@@ -238,7 +238,7 @@ func TestTestConnectionScopeWarnings(t *testing.T) {
 	if !strings.Contains(byID[stepScopes].GetMessage(), "offline_access") {
 		t.Errorf("scopes message = %q", byID[stepScopes].GetMessage())
 	}
-	// Silo's hourly task re-checks idle accounts, so the advice sizes the
+	// Prairie's hourly task re-checks idle accounts, so the advice sizes the
 	// lifetime by the re-check interval plus an hour, not by idle time.
 	if msg := byID[stepScopes].GetMessage(); !strings.Contains(msg, "re-check interval plus about an hour") || strings.Contains(msg, "idle") {
 		t.Errorf("scopes message lifetime advice = %q", msg)

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidc"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidc"
 )
 
 func TestGroupMatches(t *testing.T) {
@@ -17,23 +17,23 @@ func TestGroupMatches(t *testing.T) {
 		configured, actual string
 		want               bool
 	}{
-		{"silo-users", "silo-users", true},
-		{"Silo-Users", "silo-users", true},
-		{"silo-users", "/silo-users", true},            // Keycloak full path
-		{"/silo-users", "silo-users", true},            // Keycloak full.path=false
-		{"parent/child", "/parent/child", true},        // nested Keycloak group
-		{"child", "/parent/child", false},              // a leaf name is not the path
-		{"silo-users", "silo-users@idm.example", true}, // Kanidm SPN
-		{"silo-users@idm.example", "silo-users@idm.example", true},
-		{"silo-users@idm.example", "silo-users@other.example", false},
-		{"silo-users", "silo-users-extra", false},
-		{"silo", "silo-users", false},
-		{"", "silo-users", false},
+		{"prairie-users", "prairie-users", true},
+		{"Prairie-Users", "prairie-users", true},
+		{"prairie-users", "/prairie-users", true},            // Keycloak full path
+		{"/prairie-users", "prairie-users", true},            // Keycloak full.path=false
+		{"parent/child", "/parent/child", true},              // nested Keycloak group
+		{"child", "/parent/child", false},                    // a leaf name is not the path
+		{"prairie-users", "prairie-users@idm.example", true}, // Kanidm SPN
+		{"prairie-users@idm.example", "prairie-users@idm.example", true},
+		{"prairie-users@idm.example", "prairie-users@other.example", false},
+		{"prairie-users", "prairie-users-extra", false},
+		{"prairie", "prairie-users", false},
+		{"", "prairie-users", false},
 		// Only ASCII case folds: Unicode look-alikes do not match.
-		{"silo-admins", "\u017filo-admins", false},             // LATIN SMALL LETTER LONG S
-		{"silo-admins", "/\u017filo-admins", false},            // Keycloak path form
-		{"silo-admins", "\u017filo-admins@idm.example", false}, // Kanidm SPN form
-		{"kodi", "\u212aodi", false},                           // KELVIN SIGN
+		{"prairie-admins", "\u017filo-admins", false},             // LATIN SMALL LETTER LONG S
+		{"prairie-admins", "/\u017filo-admins", false},            // Keycloak path form
+		{"prairie-admins", "\u017filo-admins@idm.example", false}, // Kanidm SPN form
+		{"kodi", "\u212aodi", false},                              // KELVIN SIGN
 		{"Kodi", "\u212aodi", false},
 		{"\u212aodi", "\u212aodi", true},
 		{"KODI", "kodi", true},
@@ -157,24 +157,24 @@ func TestParseConfig(t *testing.T) {
 		// must not fail Configure.
 		entry("display_name", map[string]any{"value": 42.0}),
 		entry(keyConnection, map[string]any{
-			"issuer_url": " https://auth.example/application/o/silo/ ", "client_id": "silo", "client_secret": "s3cret\n",
+			"issuer_url": " https://auth.example/application/o/prairie/ ", "client_id": "prairie", "client_secret": "s3cret\n",
 			"scopes": "openid email  profile", "request_groups_scope": "true", "request_offline_access": true,
 		}),
 		entry(keyAccess, map[string]any{
-			"allowed_groups": "silo-users\r\ncn=silo-family,ou=groups,dc=example\n silo-users\n",
-			"admin_groups":   []any{"silo-admins"},
+			"allowed_groups": "prairie-users\r\ncn=prairie-family,ou=groups,dc=example\n prairie-users\n",
+			"admin_groups":   []any{"prairie-admins"},
 		}),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Issuer != "https://auth.example/application/o/silo/" || cfg.ClientSecret != "s3cret" {
+	if cfg.Issuer != "https://auth.example/application/o/prairie/" || cfg.ClientSecret != "s3cret" {
 		t.Errorf("connection = %+v", cfg)
 	}
 	if got := cfg.RequestedScopes(); !slices.Equal(got, []string{"openid", "email", "profile", "groups", "offline_access"}) {
 		t.Errorf("scopes = %v", got)
 	}
-	if !slices.Equal(cfg.AllowedGroups, []string{"silo-users", "cn=silo-family,ou=groups,dc=example"}) || !slices.Equal(cfg.AdminGroups, []string{"silo-admins"}) {
+	if !slices.Equal(cfg.AllowedGroups, []string{"prairie-users", "cn=prairie-family,ou=groups,dc=example"}) || !slices.Equal(cfg.AdminGroups, []string{"prairie-admins"}) {
 		t.Errorf("groups = %v / %v", cfg.AllowedGroups, cfg.AdminGroups)
 	}
 	if cfg.TokenAuthMethod != "client_secret_basic" || cfg.UsernameClaim != "preferred_username" || cfg.SubjectMode != SubjectAuto {

@@ -10,17 +10,17 @@ import (
 	"testing"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	jose "github.com/go-jose/go-jose/v4"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidc"
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidctest"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidc"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidctest"
 )
 
-const testRedirect = "https://silo.example/api/v2/auth/oauth/7/callback"
+const testRedirect = "https://prairie.example/api/v2/auth/oauth/7/callback"
 
 // settings are the config groups passed to Configure; nil groups are omitted.
 type settings struct {
@@ -66,7 +66,7 @@ func newIdP(t *testing.T, opts ...oidctest.Option) *oidctest.IdP {
 		Subject: "alice-sub",
 		IDTokenClaims: map[string]any{
 			"preferred_username": "alice", "email": "alice@example.com", "email_verified": true,
-			"name": "Alice Liddell", "groups": []any{"silo-users"},
+			"name": "Alice Liddell", "groups": []any{"prairie-users"},
 			"picture": "https://img.example/alice.png",
 		},
 	})
@@ -74,7 +74,7 @@ func newIdP(t *testing.T, opts ...oidctest.Option) *oidctest.IdP {
 		Subject: "bob-sub",
 		IDTokenClaims: map[string]any{
 			"preferred_username": "bob", "email": "bob@example.com",
-			"groups": []any{"silo-users", "silo-admins"},
+			"groups": []any{"prairie-users", "prairie-admins"},
 		},
 	})
 	idp.AddUser("carol", &oidctest.User{
@@ -146,7 +146,7 @@ func requireDenial(t *testing.T, account *pluginv1.AuthenticateResponse, want pl
 func TestSignInHappyPath(t *testing.T) {
 	idp := newIdP(t)
 	cfg := baseSettings(idp)
-	cfg.access = map[string]any{"allowed_groups": "silo-users", "admin_groups": "silo-admins"}
+	cfg.access = map[string]any{"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"}
 	p := newProvider(t, cfg)
 
 	result := signIn(t, p, idp, "alice")
@@ -163,7 +163,7 @@ func TestSignInHappyPath(t *testing.T) {
 	if account.EmailVerified == nil || !account.GetEmailVerified() {
 		t.Errorf("email_verified = %v, want true", account.EmailVerified)
 	}
-	if got := account.GetGroups(); len(got) != 1 || got[0] != "silo-users" {
+	if got := account.GetGroups(); len(got) != 1 || got[0] != "prairie-users" {
 		t.Errorf("groups = %v", got)
 	}
 	if account.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
@@ -202,7 +202,7 @@ func TestSignInHappyPath(t *testing.T) {
 func TestSignInAdminGroupsAndAllowedGroups(t *testing.T) {
 	idp := newIdP(t)
 	cfg := baseSettings(idp)
-	cfg.access = map[string]any{"allowed_groups": "silo-users\n", "admin_groups": "silo-admins"}
+	cfg.access = map[string]any{"allowed_groups": "prairie-users\n", "admin_groups": "prairie-admins"}
 	p := newProvider(t, cfg)
 
 	bob := signIn(t, p, idp, "bob").account
@@ -238,7 +238,7 @@ func TestIDTokenValidationFailures(t *testing.T) {
 		{"issuer with extra slash", func(c map[string]any) { c["iss"] = c["iss"].(string) + "/" }, "iss"},
 		{"wrong audience", func(c map[string]any) { c["aud"] = "other-client" }, "aud"},
 		{"audience list without client", func(c map[string]any) { c["aud"] = []any{"a", "b"} }, "aud"},
-		{"foreign azp", func(c map[string]any) { c["aud"] = []any{"silo", "project"}; c["azp"] = "other" }, "azp"},
+		{"foreign azp", func(c map[string]any) { c["aud"] = []any{"prairie", "project"}; c["azp"] = "other" }, "azp"},
 		{"expired", func(c map[string]any) { c["exp"] = float64(1_000_000) }, "expired"},
 		{"missing exp", func(c map[string]any) { delete(c, "exp") }, "exp is missing"},
 		{"nbf in the future", func(c map[string]any) { c["nbf"] = float64(9_999_999_999) }, "not valid yet"},
@@ -260,7 +260,7 @@ func TestAudienceListWithMatchingAZP(t *testing.T) {
 	// Zitadel puts the client and project IDs in aud.
 	idp := newIdP(t)
 	idp.Set(func(idp *oidctest.IdP) {
-		idp.MutateIDToken = func(c map[string]any) { c["aud"] = []any{"silo", "123456"}; c["azp"] = "silo" }
+		idp.MutateIDToken = func(c map[string]any) { c["aud"] = []any{"prairie", "123456"}; c["azp"] = "prairie" }
 	})
 	p := newProvider(t, baseSettings(idp))
 	requireAccount(t, signIn(t, p, idp, "alice").account)
@@ -364,14 +364,14 @@ func TestUserinfoOnlyClaims(t *testing.T) {
 		Subject: "dave-sub",
 		UserinfoClaims: map[string]any{
 			"preferred_username": "dave", "email": "dave@example.com", "email_verified": true,
-			"name": "Dave", "groups": []any{"silo-users"},
+			"name": "Dave", "groups": []any{"prairie-users"},
 			// Userinfo must not override protected claims.
 			"iss": "https://evil.example", "tid": "evil",
 		},
 	})
 	cfg := baseSettings(idp)
 	cfg.connection["request_groups_scope"] = true
-	cfg.access = map[string]any{"allowed_groups": "silo-users"}
+	cfg.access = map[string]any{"allowed_groups": "prairie-users"}
 	p := newProvider(t, cfg)
 	account := signIn(t, p, idp, "dave").account
 	requireAccount(t, account)
@@ -426,38 +426,38 @@ func TestGroupClaimShapesEndToEnd(t *testing.T) {
 	}{
 		{
 			name:   "keycloak full paths",
-			claims: map[string]any{"groups": []any{"/silo-users", "/silo-admins"}},
-			groups: "groups", allowed: "silo-users", admin: "/silo-admins",
+			claims: map[string]any{"groups": []any{"/prairie-users", "/prairie-admins"}},
+			groups: "groups", allowed: "prairie-users", admin: "/prairie-admins",
 			want: pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN,
 		},
 		{
 			name: "kanidm spn and uuid",
 			claims: map[string]any{"groups": []any{
 				"00000000-0000-0000-0000-000000000035", "idm_all_persons@idm.example",
-				"4b6a1c1e-0000-0000-0000-000000000001", "silo-users@idm.example",
+				"4b6a1c1e-0000-0000-0000-000000000001", "prairie-users@idm.example",
 			}},
-			groups: "groups", allowed: "silo-users", admin: "silo-admins",
+			groups: "groups", allowed: "prairie-users", admin: "prairie-admins",
 			want: pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER,
 		},
 		{
 			name:   "kanidm groups_name",
-			claims: map[string]any{"groups_name": []any{"silo-users", "silo-admins"}},
-			groups: "groups_name", allowed: "silo-users", admin: "silo-admins",
+			claims: map[string]any{"groups_name": []any{"prairie-users", "prairie-admins"}},
+			groups: "groups_name", allowed: "prairie-users", admin: "prairie-admins",
 			want: pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN,
 		},
 		{
 			name: "zitadel project roles object",
 			claims: map[string]any{"urn:zitadel:iam:org:project:roles": map[string]any{
-				"silo-admins": map[string]any{"123": "silolab.example"},
-				"silo-users":  map[string]any{"123": "silolab.example"},
+				"prairie-admins": map[string]any{"123": "prairielab.example"},
+				"prairie-users":  map[string]any{"123": "prairielab.example"},
 			}},
-			groups: "urn:zitadel:iam:org:project:roles", allowed: "silo-users", admin: "silo-admins",
+			groups: "urn:zitadel:iam:org:project:roles", allowed: "prairie-users", admin: "prairie-admins",
 			want: pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN,
 		},
 		{
 			name:   "nested roles path",
-			claims: map[string]any{"realm_access": map[string]any{"roles": []any{"silo-users"}}},
-			groups: "realm_access.roles", allowed: "silo-users", admin: "silo-admins",
+			claims: map[string]any{"realm_access": map[string]any{"roles": []any{"prairie-users"}}},
+			groups: "realm_access.roles", allowed: "prairie-users", admin: "prairie-admins",
 			want: pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER,
 		},
 		{
@@ -546,11 +546,11 @@ func TestEntraSubject(t *testing.T) {
 
 func TestIssuerWithTrailingSlash(t *testing.T) {
 	// authentik's issuer ends in a slash; it must be used exactly.
-	idp := newIdP(t, oidctest.WithIssuerSuffix("/application/o/silo/"))
+	idp := newIdP(t, oidctest.WithIssuerSuffix("/application/o/prairie/"))
 	p := newProvider(t, baseSettings(idp))
 	account := signIn(t, p, idp, "alice").account
 	requireAccount(t, account)
-	if !strings.HasSuffix(account.GetExternalSubject(), "/application/o/silo/|alice-sub") {
+	if !strings.HasSuffix(account.GetExternalSubject(), "/application/o/prairie/|alice-sub") {
 		t.Errorf("external_subject = %q", account.GetExternalSubject())
 	}
 
@@ -690,7 +690,7 @@ func TestEndSessionURL(t *testing.T) {
 	req := &pluginv1.AuthEndSessionUrlRequest{
 		ExternalSubject:       account.GetExternalSubject(),
 		RefreshState:          account.GetRefreshState(),
-		PostLogoutRedirectUri: "https://silo.example/login",
+		PostLogoutRedirectUri: "https://prairie.example/login",
 	}
 	resp, err := p.EndSessionUrl(context.Background(), req)
 	if err != nil || resp.GetUrl() != "" {
@@ -711,7 +711,7 @@ func TestEndSessionURL(t *testing.T) {
 	query := logout.Query()
 	if !strings.HasPrefix(resp.GetUrl(), strings.TrimSuffix(idp.Issuer, "/")+"/logout?") ||
 		query.Get("id_token_hint") != account.GetRefreshState().GetFields()[refreshIDToken].GetStringValue() ||
-		query.Get("post_logout_redirect_uri") != "https://silo.example/login" || query.Get("client_id") != "silo" {
+		query.Get("post_logout_redirect_uri") != "https://prairie.example/login" || query.Get("client_id") != "prairie" {
 		t.Errorf("end-session URL = %s", resp.GetUrl())
 	}
 

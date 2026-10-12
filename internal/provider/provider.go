@@ -1,6 +1,6 @@
-// Package provider implements the Silo auth_provider.v1 capability for a
+// Package provider implements the Prairie auth_provider.v1 capability for a
 // generic OpenID Connect provider. It returns typed facts about the person
-// and applies the configured group rules; Silo owns accounts and sessions.
+// and applies the configured group rules; Prairie owns accounts and sessions.
 package provider
 
 import (
@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidc"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidc"
 )
 
 // provider_state and refresh_state field names.

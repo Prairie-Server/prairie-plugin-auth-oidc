@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidctest"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidctest"
 )
 
 // withStateFields returns a copy of the account's refresh_state edited by fn.
@@ -411,7 +411,7 @@ func TestRefreshTokenLifetimeSetting(t *testing.T) {
 
 	entries := func(field string, lifetime any) []*pluginv1.ConfigEntry {
 		return []*pluginv1.ConfigEntry{{Key: keyConnection, Value: mustStruct(t, map[string]any{
-			"issuer_url": "https://idp.example", "client_id": "silo", field: lifetime,
+			"issuer_url": "https://idp.example", "client_id": "prairie", field: lifetime,
 		})}}
 	}
 	cfg, err := ParseConfig(entries("refresh_token_lifetime", "90m"))

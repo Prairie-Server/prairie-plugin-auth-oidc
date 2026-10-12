@@ -167,7 +167,7 @@ type options struct {
 	alg          jose.SignatureAlgorithm
 }
 
-// WithIssuerSuffix appends a path to the issuer, such as "/application/o/silo/".
+// WithIssuerSuffix appends a path to the issuer, such as "/application/o/prairie/".
 func WithIssuerSuffix(suffix string) Option {
 	return func(o *options) { o.issuerSuffix = suffix }
 }
@@ -186,7 +186,7 @@ func New(t testing.TB, opts ...Option) *IdP {
 	}
 	idp := &IdP{
 		t:            t,
-		ClientID:     "silo",
+		ClientID:     "prairie",
 		ClientSecret: "test-client-secret-0123456789abcdef",
 		Users:        map[string]*User{},
 		codes:        map[string]*grant{},

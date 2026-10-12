@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidc"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidc"
 )
 
 // Global config keys and their fields. They must match manifest.json. The

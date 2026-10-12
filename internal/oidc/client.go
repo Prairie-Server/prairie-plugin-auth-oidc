@@ -1,6 +1,6 @@
 // Package oidc is a small OpenID Connect relying-party client: discovery,
 // JWKS, the authorization-code and refresh grants, ID token validation, and
-// userinfo. It knows nothing about Silo accounts.
+// userinfo. It knows nothing about Prairie accounts.
 package oidc
 
 import (
@@ -439,7 +439,7 @@ const (
 func (c *Client) ProbeClientAuth(ctx context.Context, redirectURI string) (ProbeResult, string, error) {
 	refresh := url.Values{}
 	refresh.Set("grant_type", "refresh_token")
-	refresh.Set("refresh_token", "silo-connection-test-invalid-refresh-token")
+	refresh.Set("refresh_token", "prairie-connection-test-invalid-refresh-token")
 	_, err := c.token(ctx, refresh)
 	var tokenErr *TokenError
 	switch {
@@ -456,7 +456,7 @@ func (c *Client) ProbeClientAuth(ctx context.Context, redirectURI string) (Probe
 
 	code := url.Values{}
 	code.Set("grant_type", "authorization_code")
-	code.Set("code", "silo-connection-test-invalid-code")
+	code.Set("code", "prairie-connection-test-invalid-code")
 	code.Set("redirect_uri", redirectURI)
 	code.Set("code_verifier", strings.Repeat("A", 43))
 	_, err = c.token(ctx, code)

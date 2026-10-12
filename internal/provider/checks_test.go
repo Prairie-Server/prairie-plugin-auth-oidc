@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	jose "github.com/go-jose/go-jose/v4"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/oidctest"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/oidctest"
 )
 
 func checkAccount(t *testing.T, p *Provider, account *pluginv1.AuthenticateResponse) *pluginv1.CheckAccountResponse {
@@ -40,7 +40,7 @@ func requireStatus(t *testing.T, resp *pluginv1.CheckAccountResponse, want plugi
 
 func groupsSettings(idp *oidctest.IdP) settings {
 	cfg := baseSettings(idp)
-	cfg.access = map[string]any{"allowed_groups": "silo-users", "admin_groups": "silo-admins"}
+	cfg.access = map[string]any{"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"}
 	return cfg
 }
 
@@ -82,8 +82,8 @@ func TestCheckAccountReappliesGroups(t *testing.T) {
 	account := signIn(t, p, idp, "bob").account
 	requireAccount(t, account)
 
-	// Bob leaves silo-admins at the provider: the check demotes him.
-	idp.Set(func(idp *oidctest.IdP) { idp.Users["bob"].IDTokenClaims["groups"] = []any{"silo-users"} })
+	// Bob leaves prairie-admins at the provider: the check demotes him.
+	idp.Set(func(idp *oidctest.IdP) { idp.Users["bob"].IDTokenClaims["groups"] = []any{"prairie-users"} })
 	resp := checkAccount(t, p, account)
 	requireStatus(t, resp, pluginv1.CheckAccountStatus_CHECK_ACCOUNT_STATUS_ACTIVE)
 	if resp.GetAccount().GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
@@ -102,7 +102,7 @@ func TestCheckAccountReappliesGroups(t *testing.T) {
 func TestCheckAccountUsesUserinfoWhenRefreshHasNoIDToken(t *testing.T) {
 	// Authelia-style: groups only in userinfo, and no ID token on refresh.
 	idp := newIdP(t)
-	idp.AddUser("dave", &oidctest.User{Subject: "dave-sub", UserinfoClaims: map[string]any{"groups": []any{"silo-users"}}})
+	idp.AddUser("dave", &oidctest.User{Subject: "dave-sub", UserinfoClaims: map[string]any{"groups": []any{"prairie-users"}}})
 	idp.Set(func(idp *oidctest.IdP) { idp.OmitIDTokenOnRefresh = true })
 	p := newProvider(t, groupsSettings(idp))
 	account := signIn(t, p, idp, "dave").account

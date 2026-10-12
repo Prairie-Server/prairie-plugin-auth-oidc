@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	publicconfig "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config"
-	publicmanifest "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	publicconfig "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/config"
+	publicmanifest "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 
-	"github.com/Silo-Server/silo-plugin-auth-oidc/internal/provider"
+	"github.com/prairie-server/prairie-plugin-auth-oidc/internal/provider"
 )
 
 func loadManifest(t *testing.T) *pluginv1.PluginManifest {
@@ -28,7 +28,7 @@ func loadManifest(t *testing.T) *pluginv1.PluginManifest {
 
 func TestManifestIsValid(t *testing.T) {
 	m := loadManifest(t)
-	if err := publicmanifest.ValidateCatalogPresentation(m, "https://github.com/Silo-Server/silo-plugin-auth-oidc"); err != nil {
+	if err := publicmanifest.ValidateCatalogPresentation(m, "https://github.com/prairie-server/prairie-plugin-auth-oidc"); err != nil {
 		t.Errorf("catalog presentation: %v", err)
 	}
 	var auth, routes *pluginv1.CapabilityDescriptor
@@ -91,7 +91,7 @@ func TestManifestConfigSchema(t *testing.T) {
 		t.Error("client_secret must be marked secret")
 	}
 	valid := map[string]any{
-		"issuer_url": "https://idp.example", "client_id": "silo", "client_secret": "s",
+		"issuer_url": "https://idp.example", "client_id": "prairie", "client_secret": "s",
 		"token_endpoint_auth_method": "client_secret_basic", "scopes": "openid profile email",
 		"request_groups_scope": true, "request_offline_access": false, "prompt": "",
 		"provider_logout": false, "ca_pem": "", "allow_hs256": false, "refresh_token_lifetime": "30d",
@@ -120,7 +120,7 @@ func TestManifestConfigSchema(t *testing.T) {
 			t.Errorf("%s patterns: form %q, json_schema %q; want %q", field, formPatterns[field], schemaPattern, provider.LifetimePattern)
 		}
 		for value, ok := range map[string]bool{"": true, "0": true, "30d": true, "1h30m": true, "36500d": false, "1.5h": false} {
-			edited := map[string]any{"issuer_url": "https://idp.example", "client_id": "silo", field: value}
+			edited := map[string]any{"issuer_url": "https://idp.example", "client_id": "prairie", field: value}
 			if err := publicconfig.ValidateManifestGlobalValue(m, "connection", edited); (err == nil) != ok {
 				t.Errorf("%s %q: validation error %v, want accepted = %v", field, value, err, ok)
 			}
@@ -211,5 +211,12 @@ func TestAssetRouteRejectsOtherPaths(t *testing.T) {
 		if resp.GetStatusCode() == http.StatusOK {
 			t.Errorf("%s %s answered 200", tc.method, tc.path)
 		}
+	}
+}
+
+func TestAssetRouteAnswersHeadWithoutBody(t *testing.T) {
+	resp, err := (&assetRoutes{}).Handle(context.Background(), &pluginv1.HandleHTTPRequest{Method: http.MethodHead, Path: "/assets/sso.svg"})
+	if err != nil || resp.GetStatusCode() != http.StatusOK || len(resp.GetBody()) != 0 {
+		t.Fatalf("HEAD = %v, %v", resp, err)
 	}
 }
